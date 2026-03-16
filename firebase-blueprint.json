@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Study": {
+      "title": "Study",
+      "description": "A study session recorded by the user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "area": { "type": "string", "enum": ["Linguagens", "Matemática", "Ciências da Natureza", "Ciências Humanas", "Redação"] },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "description": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "pdfName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "area", "subject", "topic", "createdAt"]
+    },
+    "Revision": {
+      "title": "Revision",
+      "description": "A scheduled revision for a study",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "studyId": { "type": "string" },
+        "type": { "type": "string", "enum": ["24h", "7d", "15d", "30d", "60d", "120d", "180d"] },
+        "scheduledDate": { "type": "string", "format": "date-time" },
+        "originalScheduledDate": { "type": "string", "format": "date-time" },
+        "completedDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Agendada", "Pendente", "Concluída"] },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "area": { "type": "string" }
+      },
+      "required": ["userId", "studyId", "type", "scheduledDate", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/studies/{studyId}": {
+      "schema": "Study",
+      "description": "Study sessions"
+    },
+    "/revisions/{revisionId}": {
+      "schema": "Revision",
+      "description": "Scheduled revisions"
+    }
+  }
+}

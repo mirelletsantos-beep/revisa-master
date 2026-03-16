@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - photoURL: string
+    //   - createdAt: string (date-time)
+    //   - role: string (optional, 'admin' or 'user')
+    //
+    // Collection: studies
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required, immutable)
+    //   - area: string (enum)
+    //   - subject: string (required, max 100)
+    //   - topic: string (required, max 200)
+    //   - description: string (optional, max 1000)
+    //   - pdfUrl: string (optional)
+    //   - pdfName: string (optional)
+    //   - createdAt: string (date-time)
+    //
+    // Collection: revisions
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required, immutable)
+    //   - studyId: string (required, immutable)
+    //   - type: string (enum)
+    //   - scheduledDate: string (date-time)
+    //   - originalScheduledDate: string (date-time)
+    //   - completedDate: string (optional, date-time)
+    //   - status: string (enum)
+    //   - subject: string
+    //   - topic: string
+    //   - area: string
+    //   - studyDate: string (date-time)
+    //   - simulationDone: boolean (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "mirelle.tsantos@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validString(field, maxLen) {
+      return request.resource.data[field] is string && request.resource.data[field].size() <= maxLen;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    
+    function isValidUser(data) {
+      return data.uid is string && data.uid == request.auth.uid &&
+             data.email is string &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('role' in data) || data.role == 'user' || isAdmin());
+    }
+
+    function isValidStudy(data) {
+      return data.userId is string &&
+             data.area in ['Linguagens', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas', 'Redação'] &&
+             data.subject is string && data.subject.size() > 0 && data.subject.size() <= 100 &&
+             data.topic is string && data.topic.size() > 0 && data.topic.size() <= 200 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             data.createdAt is string;
+    }
+
+    function isValidRevision(data) {
+      return data.userId is string &&
+             data.studyId is string &&
+             data.type in ['24h', '7d', '15d', '30d', '60d', '120d', '180d'] &&
+             data.status in ['Agendada', 'Pendente', 'Concluída'] &&
+             data.scheduledDate is string &&
+             data.originalScheduledDate is string &&
+             data.subject is string && data.subject.size() <= 100 &&
+             data.topic is string && data.topic.size() <= 200 &&
+             data.area in ['Linguagens', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas', 'Redação'] &&
+             data.studyDate is string;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && 
+                      (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /studies/{studyId} {
+      allow read, delete: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidStudy(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && 
+                      request.resource.data.userId == resource.data.userId &&
+                      isValidStudy(request.resource.data);
+    }
+
+    match /revisions/{revisionId} {
+      allow read, delete: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidRevision(request.resource.data);
+      allow update: if (isDocOwner() || isAdmin()) && 
+                      request.resource.data.userId == resource.data.userId &&
+                      isValidRevision(request.resource.data);
+    }
+  }
+}
