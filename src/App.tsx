@@ -3,6 +3,8 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
+import MobileNav from './components/MobileNav';
+import MobileHeader from './components/MobileHeader';
 import Dashboard from './components/Dashboard';
 import NewStudy from './components/NewStudy';
 import History from './components/History';
@@ -39,29 +41,35 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50 font-sans text-slate-900">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} />
       
-      <main className="flex-1 overflow-y-auto h-screen p-4 md:p-8">
-        <div className="max-w-5xl mx-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeTab === 'inicio' && <Dashboard />}
-              {activeTab === 'novo' && <NewStudy setActiveTab={setActiveTab} />}
-              {activeTab === 'painel' && <ControlPanel />}
-              {activeTab === 'materias' && <SubjectsView />}
-              {activeTab === 'historico' && <History />}
-              {activeTab === 'calendario' && <CalendarView />}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <MobileHeader user={user} />
+        
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 lg:pb-8">
+          <div className="max-w-5xl mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {activeTab === 'inicio' && <Dashboard />}
+                {activeTab === 'novo' && <NewStudy setActiveTab={setActiveTab} />}
+                {activeTab === 'painel' && <ControlPanel />}
+                {activeTab === 'materias' && <SubjectsView />}
+                {activeTab === 'historico' && <History />}
+                {activeTab === 'calendario' && <CalendarView />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </main>
+
+        <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
     </div>
   );
 }

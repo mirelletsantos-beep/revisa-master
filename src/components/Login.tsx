@@ -8,11 +8,13 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<React.ReactNode>('');
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -42,13 +44,13 @@ export default function Login() {
       } else if (err.code === 'auth/network-request-failed') {
         message = "Erro de conexão. Verifique sua internet.";
       } else if (err.code === 'auth/unauthorized-domain') {
+        const domain = window.location.hostname;
         message = (
           <div className="space-y-2">
             <p>Este domínio não está autorizado no Firebase Auth.</p>
             <p className="text-xs font-mono bg-rose-100 p-2 rounded">
-              Adicione estes domínios em Authentication {'>'} Settings {'>'} Authorized Domains:
-              <br />- ais-dev-ankds2pyjdblv7jp4yhxjh-494291664065.us-east1.run.app
-              <br />- ais-pre-ankds2pyjdblv7jp4yhxjh-494291664065.us-east1.run.app
+              Adicione este domínio em Authentication {'>'} Settings {'>'} Authorized Domains:
+              <br />- {domain}
             </p>
           </div>
         );
@@ -71,24 +73,27 @@ export default function Login() {
       }
       
       setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     setError('');
+    setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: any) {
       console.error("Google login error:", err);
       let message: React.ReactNode = "Erro ao entrar com Google.";
       if (err.code === 'auth/unauthorized-domain') {
+        const domain = window.location.hostname;
         message = (
           <div className="space-y-2">
             <p>Este domínio não está autorizado para login com Google.</p>
             <p className="text-xs font-mono bg-rose-100 p-2 rounded">
-              Adicione estes domínios em Authentication {'>'} Settings {'>'} Authorized Domains:
-              <br />- ais-dev-ankds2pyjdblv7jp4yhxjh-494291664065.us-east1.run.app
-              <br />- ais-pre-ankds2pyjdblv7jp4yhxjh-494291664065.us-east1.run.app
+              Adicione este domínio em Authentication {'>'} Settings {'>'} Authorized Domains:
+              <br />- {domain}
             </p>
           </div>
         );
@@ -112,6 +117,8 @@ export default function Login() {
         message = err.message;
       }
       setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -180,9 +187,14 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95"
+            disabled={loading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-95 flex items-center justify-center gap-2"
           >
-            {isRegistering ? 'Criar Conta' : 'Entrar'}
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              isRegistering ? 'Criar Conta' : 'Entrar'
+            )}
           </button>
         </form>
 
@@ -197,10 +209,17 @@ export default function Login() {
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium py-3 rounded-xl transition-all active:scale-95"
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 hover:bg-slate-50 disabled:bg-slate-50 text-slate-700 font-medium py-3 rounded-xl transition-all active:scale-95"
         >
-          <Chrome className="w-5 h-5 text-indigo-600" />
-          Google
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <>
+              <Chrome className="w-5 h-5 text-indigo-600" />
+              Google
+            </>
+          )}
         </button>
 
         <p className="text-center mt-8 text-slate-500 text-sm">

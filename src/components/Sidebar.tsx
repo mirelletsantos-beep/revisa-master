@@ -26,7 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, user }: SidebarProps)
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
+    <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200 flex-col h-screen sticky top-0">
       <div className="p-6 flex items-center gap-3">
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
           <BookOpen className="text-white w-6 h-6" />

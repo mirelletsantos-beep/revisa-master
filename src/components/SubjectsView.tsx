@@ -6,6 +6,12 @@ import { format } from 'date-fns';
 import { BookOpen, ChevronRight, Calendar, CheckCircle2, Clock, Book } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { handleFirestoreError, OperationType } from '../utils/errorHandlers';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function SubjectsView() {
   const [revisions, setRevisions] = useState<Revision[]>([]);
@@ -60,9 +66,12 @@ export default function SubjectsView() {
         <p className="text-slate-500">Acompanhe seu progresso por matéria e assunto.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Subjects List */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm h-[600px] overflow-y-auto">
+        <div className={cn(
+          "bg-white border border-slate-200 rounded-3xl p-4 shadow-sm h-[500px] lg:h-[600px] overflow-y-auto transition-all",
+          selectedSubject && "hidden lg:block"
+        )}>
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider px-4 mb-4">Matérias</h3>
           <div className="space-y-1">
             {subjects.map(subject => (
@@ -92,8 +101,19 @@ export default function SubjectsView() {
         </div>
 
         {/* Topics List */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm h-[600px] overflow-y-auto">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider px-4 mb-4">Assuntos</h3>
+        <div className={cn(
+          "bg-white border border-slate-200 rounded-3xl p-4 shadow-sm h-[500px] lg:h-[600px] overflow-y-auto transition-all",
+          (!selectedSubject || selectedTopic) && "hidden lg:block"
+        )}>
+          <div className="flex items-center justify-between px-4 mb-4">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Assuntos</h3>
+            <button 
+              onClick={() => setSelectedSubject(null)}
+              className="lg:hidden text-xs font-bold text-indigo-600"
+            >
+              Voltar
+            </button>
+          </div>
           <AnimatePresence mode="wait">
             {!selectedSubject ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -122,14 +142,28 @@ export default function SubjectsView() {
                     <ChevronRight className={`w-4 h-4 transition-transform ${selectedTopic === topic ? "rotate-90" : ""}`} />
                   </button>
                 ))}
+                {topicsForSubject.length === 0 && (
+                  <p className="text-center text-slate-400 py-8 text-sm italic">Nenhum assunto encontrado.</p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Details */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm h-[600px] overflow-y-auto">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Detalhes da Revisão</h3>
+        <div className={cn(
+          "bg-white border border-slate-200 rounded-3xl p-6 shadow-sm h-[500px] lg:h-[600px] overflow-y-auto transition-all",
+          !selectedTopic && "hidden lg:block"
+        )}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Detalhes da Revisão</h3>
+            <button 
+              onClick={() => setSelectedTopic(null)}
+              className="lg:hidden text-xs font-bold text-indigo-600"
+            >
+              Voltar
+            </button>
+          </div>
           <AnimatePresence mode="wait">
             {!selectedTopic ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">

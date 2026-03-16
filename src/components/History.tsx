@@ -178,22 +178,22 @@ export default function History() {
         )}
       </header>
 
-      <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
+      <div className="flex p-1 bg-slate-100 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveSubTab('hoje')}
-          className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'hoje' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeSubTab === 'hoje' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
         >
           Hoje
         </button>
         <button
           onClick={() => setActiveSubTab('pendentes')}
-          className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'pendentes' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeSubTab === 'pendentes' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
         >
           Pendentes
         </button>
         <button
           onClick={() => setActiveSubTab('todas')}
-          className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeSubTab === 'todas' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeSubTab === 'todas' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
         >
           Todas
         </button>
