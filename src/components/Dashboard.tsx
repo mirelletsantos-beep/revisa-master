@@ -2,17 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, updateDoc, doc, addDoc, getDocs } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { handleFirestoreError, OperationType } from '../utils/errorHandlers';
-import { Revision, Question } from '../types';
+import { Revision } from '../types';
 import { format, startOfDay, endOfDay, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle2, AlertTriangle, BrainCircuit, Calendar as CalendarIcon, ArrowRight } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
 import { getStatusColor, calculateRevisionDate } from '../utils';
-import SimulationModal from './SimulationModal';
 
 export default function Dashboard() {
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [loading, setLoading] = useState(true);
-  const [simulationRevision, setSimulationRevision] = useState<Revision | null>(null);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -95,17 +93,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleFinishSimulation = async (revision: Revision) => {
-    if (!revision.id) return;
-    try {
-      await updateDoc(doc(db, 'revisions', revision.id), {
-        simulationDone: true
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `revisions/${revision.id}`);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -134,7 +121,6 @@ export default function Dashboard() {
                 revision={rev} 
                 isPending 
                 onMarkRevised={() => handleMarkAsRevised(rev, true)}
-                onSimulate={() => setSimulationRevision(rev)}
               />
             ))}
           </div>
@@ -161,20 +147,11 @@ export default function Dashboard() {
                 key={rev.id} 
                 revision={rev} 
                 onMarkRevised={() => handleMarkAsRevised(rev)}
-                onSimulate={() => setSimulationRevision(rev)}
               />
             ))}
           </div>
         )}
       </section>
-
-      {simulationRevision && (
-        <SimulationModal 
-          revision={simulationRevision} 
-          onClose={() => setSimulationRevision(null)} 
-          onFinish={() => handleFinishSimulation(simulationRevision)}
-        />
-      )}
     </div>
   );
 }
@@ -183,10 +160,9 @@ interface RevisionCardProps {
   revision: Revision;
   isPending?: boolean;
   onMarkRevised: () => void;
-  onSimulate: () => void;
 }
 
-function RevisionCard({ revision, isPending, onMarkRevised, onSimulate }: RevisionCardProps) {
+function RevisionCard({ revision, isPending, onMarkRevised }: RevisionCardProps) {
   const studyDate = revision.studyDate ? new Date(revision.studyDate) : new Date(revision.originalScheduledDate);
   // If studyDate was not stored, estimate it (originalScheduledDate - 1 day for 24h)
   if (!revision.studyDate && revision.type === '24h') {
@@ -213,7 +189,7 @@ function RevisionCard({ revision, isPending, onMarkRevised, onSimulate }: Revisi
         </div>
       </div>
 
-      <div className="mt-6 space-y-2">
+      <div className="mt-6">
         <button
           onClick={onMarkRevised}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all active:scale-95 shadow-sm"
@@ -221,29 +197,6 @@ function RevisionCard({ revision, isPending, onMarkRevised, onSimulate }: Revisi
           <CheckCircle2 className="w-4 h-4" />
           {isPending ? 'Revisar Hoje' : 'Marcar como revisado'}
         </button>
-        
-        {revision.simulationDone ? (
-          <div className="space-y-2">
-            <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-bold rounded-xl">
-              <CheckCircle2 className="w-4 h-4" />
-              Simulado feito
-            </div>
-            <button
-              onClick={onSimulate}
-              className="w-full text-center text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors py-1"
-            >
-              Gerar novo simulado
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={onSimulate}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-bold rounded-xl transition-all active:scale-95"
-          >
-            <BrainCircuit className="w-4 h-4 text-indigo-600" />
-            Gerar Simulado
-          </button>
-        )}
       </div>
     </div>
   );

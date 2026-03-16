@@ -36,24 +36,4 @@ export interface Revision {
   topic: string;
   area: Area;
   studyDate: string; // ISO string
-  simulationDone?: boolean;
-}
-
-export interface Question {
-  question: string;
-  options: string[];
-  correctAnswer: number; // index 0-4
-  explanation: string;
-  skill: string;
-  skillDescription: string;
-}
-
-export interface SimulationResult {
-  score: number;
-  total: number;
-  answers: {
-    questionIndex: number;
-    selectedOption: number;
-    isCorrect: boolean;
-  }[];
 }
